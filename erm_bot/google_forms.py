@@ -7,9 +7,14 @@ class GoogleForms:
     def __init__(self, form_id):
         self.form_id = form_id
         self.url = "https://docs.google.com/forms/d/e/{}/viewform".format(form_id)
+        self.submit_url = "https://docs.google.com/forms/d/e/{}/formResponse".format(
+            form_id
+        )
         self.form_data = {}
         self.form_data_keys = []
         self.form_data_values = []
+        self.session = requests.Session()
+        self.session.get(self.url)
 
     def add_form_data(self, key, value):
         self.form_data_keys.append(key)
@@ -24,8 +29,8 @@ class GoogleForms:
 
     def send_form(self):
         self.send_form_data()
-        r = requests.post(self.url, data=self.form_data)
-        return r.text
+        r = self.session.post(self.submit_url, data=self.form_data)
+        return r.status_code
 
     def get_form_data(self):
         return self.form_data
