@@ -13,7 +13,7 @@ from telegram.utils.helpers import escape_markdown
 
 from erm_bot.configuration import Setup
 from erm_bot.filters import int_filter
-from erm_bot.google_forms import GoogleForms
+from erm_bot.google_sheets import GoogleSheet
 from erm_bot.question import QuestionSet, QuestionType
 
 logging.basicConfig(
@@ -21,13 +21,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 
-GOOGLE_FORM_ID = config("GOOGLE_FORM_ID")
 TOKEN = config("TOKEN")
+SPREADSHEET_ID = config("SPREADSHEET_ID")
+SPREADSHEET_RANGE = config("SPREADSHEET_RANGE")
 CONFIG_FILE = config("CONFIG_FILE", default="data/config.json")
 QUESTION_FILE = config("QUESTION_FILE", default="data/questions.json")
+SPREADSHEET_TOKEN = config("SPREADSHEET_TOKEN", default="data/token.json")
+SPREADSHEET_CRED = config("SPREADSHEET_CRED", default="data/cred.json")
 
-
-google_forms = GoogleForms(GOOGLE_FORM_ID)
 configuration = Setup(CONFIG_FILE)
 question_set = QuestionSet(QUESTION_FILE)
 update = Updater(TOKEN, use_context=True)
@@ -78,7 +79,7 @@ class Rebuni:
             text=configuration.accepted_message + "\n\nPress /cance to cancel.", parse_mode="Markdown"
         )
         context.user_data["question_id"] = 1
-        context.user_data["answers"] = {}
+        context.user_data["gs"] = GoogleSheet(SPREADSHEET_ID, SPREADSHEET_TOKEN, SPREADSHEET_CRED)
         context.user_data["messages"] = {}
         return cls.get_question(update, context)
 
@@ -95,10 +96,10 @@ class Rebuni:
     @classmethod
     def done(cls, update, context):
         # Clear answer and reset question
-        question_set = QuestionSet(QUESTION_FILE)
         question_id = context.user_data["question_id"]
         message_id = context.user_data["messages"][question_id]
-        json.dump(context.user_data["answers"], open("ans.json", "w"), indent=4)
+        context.user_data['gs'].commit(SPREADSHEET_RANGE)
+        del context.user_data['gs']
         context.bot.edit_message_text(
             configuration.accepted_message
             + "*\n\nYou are successfuly complete our survy\.\n\nPlease* /start *to start again*",
@@ -117,6 +118,7 @@ class Rebuni:
     def skip_question(cls, update, context):
         question_id = context.user_data["question_id"]
         question = question_set.get_question(question_id)
+        context.user_data["gs"].add_value("")
         message_id = context.user_data["messages"][question_id]
         context.bot.edit_message_text(
             "*" + escape_markdown("🔰#." + question.text, version=2) + "*",
@@ -162,15 +164,55 @@ class Rebuni:
 
     @classmethod
     def _save_multiple(cls, update, context, question, response, message_id):
-        pass
+        if not context.user_data.get('multiples', False):
+            context.user_data['multiples'] = {}
+        if not context.user_data['multiples'].get(question.id, False):
+            context.user_data['multiples'][question.id] = []
+        context.user_data['multiples'][question.id].append(response)
+        q = context.user_data['multiples'][question.id]
+        if question.limit is not None and len(q) >= question.limit or response == "Done":
+            if response == "Done":
+                q.pop()
+            if question.required and len(q) == 0:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"*{escape_markdown('This field is required.' + ' Please Try Again!', version=2)}*",
+                    parse_mode="MarkdownV2",
+                )
+                return question_id
+            else:
+                answer = ','.join([str(i) for i in q])
+                context.user_data["gs"].add_value(answer)
+                return cls.next_question(update, context)
+        if not context.user_data['choices'].get(question.id, False):
+            context.user_data['choices'][question.id] = []
+        context.user_data['choices'][question.id].append(response)
+        choices = cls._get_diff(question.choices, context.user_data['choices'][question.id])
+        context.bot.edit_message_reply_markup(
+            chat_id=update.effective_chat.id,
+            message_id=message_id,
+            reply_markup=question.get_markup(choices)
+          )
+        return question_id
+
+    @classmethod
+    def _get_diff(cls, list_1, list_2):
+        choices = []
+        for i in list_1:
+            l = []
+            for j in list_2:
+                diff = set(i) - set([j])
+                if diff:
+                    l.append(list(diff))
+            choices.append(l)
+        return choices
 
     @classmethod
     def save_answer(cls, update, context, question, response, message_id):
         if question.type == QuestionType.MULTIPLE:
-            return cls.next_question(update, context)
-            # return cls._save_multiple(update, context, question, response, message_id)
+            return cls._save_multiple(update, context, question, response, message_id)
         else:
-            context.user_data["answers"][question.id] = response
+            context.user_data["gs"].add_value(response)
             context.bot.edit_message_text(
                 "*" + escape_markdown("✅#." + question.text, version=2) + "*",
                 chat_id=update.effective_chat.id,
@@ -199,48 +241,6 @@ class Rebuni:
             text=f"*{escape_markdown(response + ' Please Try Again!', version=2)}*",
             parse_mode="MarkdownV2",
         )
-
-        """
-        if is_valid:
-            context.user_data["answers"][question_id] = data
-            message_id = context.user_data["messages"][question_id]
-
-            if question.type == QuestionType.MULTIPLE:
-                if data != "Done":
-                    question.selected += 1
-                    if [data] in question.choices:
-                        question.choices.remove([data])
-                    question.selected_choice.append(data)
-                    if (
-                        question.limit is not None
-                        and question.selected < question.limit
-                    ) or (question.limit is None and len(question.choices) > 0):
-                        if query is not None:
-                            query.delete_message()
-                        return cls.get_question(update, context)
-                elif question.required and question.selected < 1:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=f"{escape_markdown('This field is required.' + ' Please Try Again!', version=2)}",
-                        parse_mode="MarkdownV2",
-                    )
-                    return question_id
-
-            context.bot.edit_message_text(
-                "*" + escape_markdown("✅#." + question.text, version=2) + "*",
-                chat_id=update.effective_chat.id,
-                message_id=message_id,
-                parse_mode="MarkdownV2",
-                reply_markup=None,
-            )
-            return cls.next_question(update, context)
-
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"*{escape_markdown(data + ' Please Try Again!', version=2)}*",
-            parse_mode="MarkdownV2",
-        )"""
-
 
 conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("start", Rebuni.welcome)],

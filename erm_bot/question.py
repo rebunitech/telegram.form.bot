@@ -17,9 +17,7 @@ class Question:
 
     def setup(self):
         if self.type == QuestionType.MULTIPLE:
-            self.selected = 0
             self.choices.append(["Done"])
-            self.selected_choice = []
 
     def _get_number_markup(self):
         MIN, MAX = self.min, self.max
@@ -34,24 +32,25 @@ class Question:
                 inlines.append(group)
             return InlineKeyboardMarkup(inlines)
 
-    def _get_inline_choice(self):
+    def _get_inline_choice(self, choices=None):
         lines = []
-        for row in self.choices:
+        choices = choices or self.choices
+        for row in choices:
             line = []
             for item in row:
                 line.append(InlineKeyboardButton(item, callback_data=str(item)))
             lines.append(line)
         return InlineKeyboardMarkup(lines)
 
-    def get_markup(self):
+    def get_markup(self, choices=None):
         if self.type == QuestionType.NUMBER:
             return self._get_number_markup()
 
         if (
-            self.type == QuestionType.INLINE_CHOICE
-            or self.type == QuestionType.MULTIPLE
+            self.type == QuestionType.INLINE_CHOICE or self.type == QuestionType.MULTIPLE
         ):
-            return self._get_inline_choice()
+            return self._get_inline_choice(choices=choices)
+
 
     def validate(self, value):
         if self.type == QuestionType.NUMBER:
