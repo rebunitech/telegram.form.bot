@@ -17,7 +17,7 @@ from erm_bot.google_sheets import GoogleSheet
 from erm_bot.question import QuestionSet, QuestionType
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s | %(funcName)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s | %(message)s | %(funcName)s"
 )
 logger = logging.getLogger()
 
@@ -179,32 +179,53 @@ class Rebuni:
                     text=f"*{escape_markdown('This field is required.' + ' Please Try Again!', version=2)}*",
                     parse_mode="MarkdownV2",
                 )
-                return question_id
+                return question.id
             else:
                 answer = ','.join([str(i) for i in q])
+                print(answer)
                 context.user_data["gs"].add_value(answer)
+                context.bot.edit_message_text(
+                    "*" + escape_markdown("✅#." + question.text, version=2) + "*",
+                    chat_id=update.effective_chat.id,
+                    message_id=message_id,
+                    parse_mode="MarkdownV2",
+                    reply_markup=None,
+                )
                 return cls.next_question(update, context)
+        if not context.user_data.get('choices', False):
+            context.user_data['choices'] = {}
         if not context.user_data['choices'].get(question.id, False):
             context.user_data['choices'][question.id] = []
         context.user_data['choices'][question.id].append(response)
-        choices = cls._get_diff(question.choices, context.user_data['choices'][question.id])
+        choices = cls._new_choice(question, context) # cls._get_diff(question.choices, context.user_data['choices'][question.id])
+        print(choices)
         context.bot.edit_message_reply_markup(
             chat_id=update.effective_chat.id,
             message_id=message_id,
             reply_markup=question.get_markup(choices)
           )
-        return question_id
+        return question.id
+    @classmethod
+    def _new_choice(cls, question, context):
+        new_choice = []
+        removed = context.user_data['choices'][question.id]
+        for row in question.choices.copy():
+            for r in removed:
+                if r in row:
+                    row.remove(r)
+            if row:
+                new_choice.append(row)
+        return new_choice
 
     @classmethod
     def _get_diff(cls, list_1, list_2):
         choices = []
         for i in list_1:
-            l = []
             for j in list_2:
                 diff = set(i) - set([j])
                 if diff:
-                    l.append(list(diff))
-            choices.append(l)
+                    choices.append(list(diff))
+                # choices.append(l)
         return choices
 
     @classmethod
