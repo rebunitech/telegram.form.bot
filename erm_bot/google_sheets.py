@@ -54,8 +54,8 @@ class GoogleSheet:
             return
         return values
 
-    def commit(self, range, input_option="RAW"):
-        values = [[datetime.utcnow().strftime("%Y/%m/%d %H:%M:%S"), *self.row]]
+    def commit(self, range, input_option="USER_ENTERED"):
+        values = [[datetime.utcnow().strftime("%m/%d/%Y %H:%M:%S"), *self.row]]
         body = {"values": values}
         result = (
             self.sheet.values()
