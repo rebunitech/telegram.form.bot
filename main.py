@@ -76,11 +76,13 @@ class Rebuni:
         query = update.callback_query
         query.answer()
         query.edit_message_text(
-            text=configuration.accepted_message + "\n\nPress /cance to cancel.", parse_mode="Markdown"
+            text=configuration.accepted_message + "\n\nPress /cancel to cancel.", parse_mode="Markdown"
         )
         context.user_data["question_id"] = 1
         context.user_data["gs"] = GoogleSheet(SPREADSHEET_ID, SPREADSHEET_TOKEN, SPREADSHEET_CRED)
         context.user_data["messages"] = {}
+        context.user_data["choices"] = {}
+        context.user_data["multiples"] = {}
         return cls.get_question(update, context)
 
     @classmethod
@@ -90,7 +92,7 @@ class Rebuni:
 
     @classmethod
     def cancel(cls, update, context):
-        update.message.reply_text("I hope I will see you soon.")
+        update.message.reply_text(configuration.accepted_message + "\n\nI hope I will see you soon. \n\n /start to start again.")
         return ConversationHandler.END
 
     @classmethod
@@ -102,7 +104,7 @@ class Rebuni:
         del context.user_data['gs']
         context.bot.edit_message_text(
             configuration.accepted_message
-            + "*\n\nYou are successfuly complete our survy\.\n\nPlease* /start *to start again*",
+            + "*\n\nYou are successfuly complete our survey\.\n\nPlease* /start *to start again*",
             chat_id=update.effective_chat.id,
             message_id=message_id,
             parse_mode="MarkdownV2",
@@ -164,8 +166,6 @@ class Rebuni:
 
     @classmethod
     def _save_multiple(cls, update, context, question, response, message_id):
-        if not context.user_data.get('multiples', False):
-            context.user_data['multiples'] = {}
         if not context.user_data['multiples'].get(question.id, False):
             context.user_data['multiples'][question.id] = []
         context.user_data['multiples'][question.id].append(response)
@@ -182,7 +182,6 @@ class Rebuni:
                 return question.id
             else:
                 answer = ','.join([str(i) for i in q])
-                print(answer)
                 context.user_data["gs"].add_value(answer)
                 context.bot.edit_message_text(
                     "*" + escape_markdown("✅#." + question.text, version=2) + "*",
@@ -192,24 +191,24 @@ class Rebuni:
                     reply_markup=None,
                 )
                 return cls.next_question(update, context)
-        if not context.user_data.get('choices', False):
-            context.user_data['choices'] = {}
         if not context.user_data['choices'].get(question.id, False):
             context.user_data['choices'][question.id] = []
         context.user_data['choices'][question.id].append(response)
-        choices = cls._new_choice(question, context) # cls._get_diff(question.choices, context.user_data['choices'][question.id])
-        print(choices)
-        context.bot.edit_message_reply_markup(
-            chat_id=update.effective_chat.id,
-            message_id=message_id,
-            reply_markup=question.get_markup(choices)
-          )
+        if update.callback_query:
+            choices = cls._new_choice(question, context)
+            context.bot.edit_message_reply_markup(
+                chat_id=update.effective_chat.id,
+                message_id=message_id,
+                reply_markup=question.get_markup(choices)
+              )
         return question.id
+
     @classmethod
     def _new_choice(cls, question, context):
         new_choice = []
         removed = context.user_data['choices'][question.id]
-        for row in question.choices.copy():
+        choices = [[item for item in row] for row in question.choices]
+        for row in choices:
             for r in removed:
                 if r in row:
                     row.remove(r)
@@ -217,16 +216,6 @@ class Rebuni:
                 new_choice.append(row)
         return new_choice
 
-    @classmethod
-    def _get_diff(cls, list_1, list_2):
-        choices = []
-        for i in list_1:
-            for j in list_2:
-                diff = set(i) - set([j])
-                if diff:
-                    choices.append(list(diff))
-                # choices.append(l)
-        return choices
 
     @classmethod
     def save_answer(cls, update, context, question, response, message_id):
