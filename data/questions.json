@@ -1,0 +1,297 @@
+[
+	{
+		"id": 1,
+		"text": "Number of semester completed *",
+		"description": null,
+		"type": 0,
+		"min": 1,
+		"max": 8,
+		"required": true
+		},
+		{
+			"id": 2,
+			"text": "Sex *",
+			"description": null,
+			"type": 1,
+			"choices": [["Male", "Female"]],
+			"last": false,
+			"required": true
+		},
+		{
+			"id": 3,
+			"text": "Your current status *",
+			"description": "Write if there is other",
+			"type": 1,
+			"choices": [
+				["Computer Science and Engineering (CSE) Student"],
+				["Dual Major to CSE Department"],
+				["Looking forward to join CSE"]
+			],
+			"last": false,
+			"required": true
+		},
+		{
+			"id": 4,
+			"text": "Are you interested in coding? *",
+			"description": null,
+			"type": 1,
+			"choices": [["Yes", "No"]],
+			"last": false,
+			"required": true
+		},
+		{
+			"id": 5,
+			"text": "If yes, what motivated you to get into coding?",
+			"description": null,
+			"type": 3,
+			"required": false
+		},
+		{
+			"id": 6,
+			"text": "What does your participation in coding projects look like? *",
+			"description": null,
+			"type": 4,
+			"range": [1, 5],
+			"min_description": "I barely participate.",
+			"max_description": "I can/have work on my own.",
+			"required": true
+		},
+		{
+			"id": 7,
+			"text": "Rate your confidence with regards to accepting coding challenges/projects *",
+			"description": null,
+			"type": 4,
+			"min_description": "Not confident.",
+			"max_description": "Very Confident.",
+			"range": [1, 5],
+			"required": true
+		},
+		{
+			"id": 8,
+			"text":	"Do you own a smart device i.e., Phone, Laptops and the like? *",
+			"description": null,
+			"type": 1,
+			"choices": [["Yes", "No"]],
+			"last": false,
+			"required": true
+		},
+		{
+			"id": 9,
+			"text": "Which stream of CSE is your interest *",
+			"description": null,
+			"type": 5,
+			"allow_other": false,
+			"choices": [
+				["Computer Science"],
+				["Software Engineering"],
+				["Computer Engineering"]
+			],
+			"limit": null,
+			"required": true
+		},
+		{
+			"id": 10,
+			"text": "Which skill set are most interested in? *",
+			"description": null,
+			"type": 5,
+			"choices": [
+				["AI, Machine Learning, Data Science"],
+				["Cyber Security"],
+				["Web Development"],
+				["Networking"],
+				["Mobile App Development"],
+				["Desktop Application Development"]
+			],
+			"limit": 2,
+			"allow_other": true,
+			"required": true
+		},
+		{
+			"id": 11,
+			"text": "Select your top programming languages *",
+			"description": null,
+			"type": 5,
+			"limit": 2,
+			"choices": [
+				["Python (2/3)"],
+				["JavaScript"],
+				["C++"],
+				["Java"],
+				["PHP"]
+			],
+			"allow_other": true,
+			"required": true
+		},
+		{
+			"id": 12,
+			"text": "On average, how many hours per day do you spend studying code? *",
+			"description": "This is about the time you spent to study coding related topic, not a time that you spent on working project or trying to practice with your own challenges.",
+			"type": 0,
+			"min": 0,
+			"max": 24,
+			"required": true
+		},
+		{
+			"id": 13,
+			"text": "How many days in week did you spent to study coding? *",
+			"description": null,
+			"type": 0,
+			"min": 0,
+			"max": 7,
+			"required": true
+		},
+		{
+			"id": 14,
+			"text": "Select your best resources to study *",
+			"description": null,
+			"type": 5,
+			"choices": [
+				["Teachers"],
+				["Books"],
+				["YouTube"],
+				["Friends"],
+				["Free Websites"],
+				["Documentations"],
+				["CSEC (ICPC) Tutorials/Seminars"]
+			],
+			"allow_other": true,
+			"limit": null,
+			"required": true
+		},
+		{
+			"id": 15,
+			"text": "On average, how many hours per day do you spent coding? *",
+			"description": "N.B hours per day that you work on your personal or class project, e.t.c",
+			"type": 0,
+			"min": 0,
+			"max": 18,
+			"required": true
+		},
+		{
+			"id": 16,
+			"text":"How many days a week do you spent on coding?",
+			"description": "N.B days per week that you work on your personal or class project, e.t.c",
+			"type": 0,
+			"min": 0,
+			"max": 7,
+			"required": false
+		},
+		{
+			"id": 17,
+			"text":	"Do you believe you spend enough time to study coding? *",
+			"description": null,
+			"type": 1,
+			"choices": [["Yes", "No","Not sure"]],
+			"last": false,
+			"required": true
+		},
+		{
+			"id": 18,
+			"text": "If your answer is No/Not Sure for the above question, what is the main reason?",
+			"description": null,
+			"type": 3,
+			"required": false
+		},
+		{
+			"id": 19,
+			"text":	"Do you believe you spend enough time coding? *",
+			"description": null,
+			"type": 1,
+			"choices": [["Yes", "No","Not sure"]],
+			"last": false,
+			"required": true
+		},
+		{
+			"id": 20,
+			"text": "If your answer is No/Not Sure for the above question, what is the main reason?",
+			"description": null,
+			"type": 3,
+			"required": false
+		},
+		{
+			"id": 21,
+			"text": "What is your experience when it comes to development kits i.e., Git, Azure, Docker, and the like ? *",
+			"description": null,
+			"type": 4,
+			"range": [1, 10],
+			"min_description": "Beginner",
+			"max_description": "Expert",
+			"required": true
+		},
+		{
+			"id": 22,
+			"text": "How organized is your portfolio? *",
+			"description": "Your online repositories, CV, Personal Websites",
+			"type": 4,
+			"range": [1, 5],
+			"min_description": "I don't have a portfolio",
+			"max_description": "Well Organized",
+			"required": true
+		},
+		{
+			"id": 23,
+			"text": "What is you level of understanding? *",
+			"description": "This question requires your level of understanding when it comes to problem solving skills and your area of study.",
+			"type": 4,
+			"range": [1, 5],
+			"min_description": "Weak",
+			"max_description": "Strong",
+			"required": true
+		},
+		{
+			"id": 24,
+			"text":	"Do you participate in extracurricular coding activities? *",
+			"description": null,
+			"type": 1,
+			"choices": [["Yes", "No"]],
+			"last": false,
+			"required": true
+		},
+		{
+			"id": 25,
+			"text": "What do you aim to achieve with regards to programming? *",
+			"description": null,
+			"type": 3,
+			"required": true
+		},
+		{
+			"id": 26,
+			"text": "How far are you from achieving your goals? *",
+			"description": null,
+			"type": 4,
+			"range": [1, 5],
+			"min_description": "I have a lot to learn",
+			"max_description": "Achieved",
+			"required": true
+		},
+		{
+			"id": 27,
+			"text": "What kinds of benefits have you got from coding? *",
+			"description": null,
+			"type": 3,
+			"required": true
+		},
+		{
+			"id": 28,
+			"text": "In your opinion, what are the challenges when it comes to coding? *",
+			"description": null,
+			"type": 3,
+			"required": true
+		},
+		{
+			"id": 29,
+			"text": "What do you think the solution for those those challenges? *",
+			"description": null,
+			"type": 3,
+			"required": true
+		},
+		{
+			"id": 30,
+			"text": "Thank you a lot!",
+			"description": "Please press 'Done' to complete the survy",
+			"type": 1,
+			"choices": [["Done"]],
+			"required": true,
+			"last": true
+		}
+]
